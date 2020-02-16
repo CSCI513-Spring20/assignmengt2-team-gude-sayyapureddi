@@ -1,114 +1,179 @@
-
-import java.awt.Point;
+package source;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+
 public class OceanExplorer extends Application {
-	final int dimension = 10; // We are creating 10X10 maps
-	final int scale = 50; // Scale everything by 50.
-	Image shipImage,pirateshipImage;
-	ImageView shipImageView,pirateshipImageView;
-	OceanMap oceanMap;// for ocean class
-	Pane root;
-	Scene scene;
-	Ship ship;// for ship class
-	Point startPosition;
 
-	public static void main(String[] args) {
-		launch(args);
-		// TODO Auto-generated method stub
+    int[][] islandMap;
+    Pane root;
+    final int dimensions = 10;
+    final int scale = 50;
+    final int islandCount = 10;
+    final int pirateShipsCount = 2;
+    final int pirateIslandsCount = 2;
+    Image shipImage,islandImage,pirateShipImage,pirateIslandImage;
+    ImageView shipImageView,islandImageView;
+    ImageView[] pirateShipImageView,pirateIslandImageView;
+    OceanMap oceanMap;
+    Scene scene;
+    Ship ship;
+    PirateShip[] pirateShips;
+    PirateIsland[] pirateIslands;
+    Button button;
 
-	}
 
-	@Override
-	public void start(Stage oceanStage) throws Exception {
-		 OceanMap oceanMap = new OceanMap();
 
-		root = new AnchorPane();
-		drawMap();
 
-		startPosition = OceanMap.getShipLocation();
-		ship = new Ship(startPosition.x, startPosition.y);// sends position of the ship to ship class from ocean map
-															// class
-		loadShipImage();// load the ship image
-		loadpirateShipImage();// load the pirate ship image
+    @Override
+    public void start(Stage oceanStage) throws Exception {
 
-		scene = new Scene(root, 500, 500);
-		oceanStage.setTitle("Christopher columbus Sails The Blue Ocean");
-		oceanStage.setScene(scene);
-		oceanStage.show();// display the grid and ship
-		startSailing();
+        // create ocean grid
+        oceanMap = new OceanMap(dimensions, islandCount);
+        islandMap = OceanMap.getMap();
+        // layout
+        root = new AnchorPane();
+        // pirate ship initializations
+        pirateShips = new PirateShip[pirateShipsCount];
+        pirateIslands = new PirateIsland[pirateIslandsCount];
 
-	}
+        for (int i = 0; i < pirateIslandsCount; i++) {
+            pirateIslands[i] = new PirateIsland();
+        }
+        for (int i = 0; i < pirateShipsCount; i++) {
+            pirateShips[i] = new PirateShip(pirateIslands[i].getPirateIslandLocation());
 
-	// startSailing() this is an event handle method this handle various movement of
-	// the ship
-	private void startSailing() {
-		scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(KeyEvent ke) {
-				switch (ke.getCode()) {
-				case RIGHT:
-					ship.goEast();
-					break;
-				case LEFT:
-					ship.goWest();
-					break;
-				case UP:
-					ship.goNorth();
-					break;
-				case DOWN:
-					ship.goSouth();
-					break;
-				default:
-					break;
-				}
-				shipImageView.setX(ship.getShipLocation().x * scale);
-				shipImageView.setY(ship.getShipLocation().y * scale);
-			}
-		});
+        }
+        pirateShipImageView = new ImageView[pirateShipsCount];
+        pirateIslandImageView = new ImageView[pirateIslandsCount];
+        button = new Button("Reset");
+        button.setPrefSize(500, 50);
+        button.setLayoutX(0);
+        button.setLayoutY(500);
+        button.setOnAction(event -> {
+            try {
+                start(oceanStage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
-	}
+        drawMap();
+        root.getChildren().add(button);
 
-    // draw map will draw the grid of ocean with each rectangle blue color 
-	public void drawMap() {
-		for (int x = 0; x < dimension; x++) {
-			for (int y = 0; y < dimension; y++) {
-				Rectangle rect = new Rectangle(x * scale, y * scale, scale, scale);
-				rect.setStroke(Color.BLACK); // We want the black outline
-				rect.setFill(Color.PALETURQUOISE); // I like this color better than BLUE
-				root.getChildren().add(rect); // Add to the node tree in the pane
 
-			}
-		}
-	}
 
-	// loads the target ship image to grid with random positions
-	private void loadShipImage() {
-		// Load target image
-		Image shipImage = new Image("\\ship.png", 50, 50, true, true);
-		shipImageView = new ImageView(shipImage);
-		shipImageView.setX(OceanMap.getShipLocation().x * scale);
-		shipImageView.setY(OceanMap.getShipLocation().y * scale);
-		root.getChildren().add(shipImageView);
-	}
-	private void loadpirateShipImage() {
-		// Load target image
-		Image pirateshipImage = new Image("\\pirateShip.png", 50, 50, true, true);
-		pirateshipImageView = new ImageView(pirateshipImage);
-		pirateshipImageView.setX(OceanMap.getpirateShipLocation().x * scale);
-		pirateshipImageView.setY(OceanMap.getpirateShipLocation().y * scale);
-		root.getChildren().add(pirateshipImageView);
-	}
+        ship = new Ship();
+        // add observers
+        for (int i = 0; i < pirateShipsCount; i++) {
+            ship.addObserver(pirateShips[i]);
+        }
 
+        loadShipImage();
+
+
+        scene = new Scene(root, 500, 550);
+
+        oceanStage.setTitle("Christopher Columbus Sails the Ocean Blue");
+        oceanStage.setScene(scene);
+        oceanStage.show();
+        startSailing();
+    }
+
+    //    draw map
+    private void drawMap() {
+        int[][] oceanGrid = islandMap;
+
+        for (int x = 0; x < dimensions; x++) {
+            for (int y = 0; y < dimensions; y++) {
+                Rectangle rect = new Rectangle(x * scale, y * scale, scale, scale);
+                rect.setStroke(Color.BLACK);
+//                add ocean
+                rect.setFill(Color.PALETURQUOISE);
+                root.getChildren().add(rect);
+/*               add islands
+                if (oceanGrid[x][y] == 2)
+                    loadIslandImage(x, y);*/
+
+            }
+        }
+       // loadPirateIsland();
+        loadPirateShipImage();
+
+    }
+
+    // load ship image
+    private void loadShipImage() {
+        shipImage = new Image("source/ship.png", 50, 50, true, true);
+        shipImageView = new ImageView(shipImage);
+
+        shipImageView.setX(ship.getShipLocation().x * scale);
+        shipImageView.setY(ship.getShipLocation().y * scale);
+
+        root.getChildren().add(shipImageView);
+
+    }
+
+
+
+    // load pirate ship image
+
+    private void loadPirateShipImage() {
+        pirateShipImage = new Image("source/pirateShip.png", 50, 50, true, true);
+        int t = 0;
+        while (t < pirateShipsCount) {
+
+
+            pirateShipImageView[t] = new ImageView(pirateShipImage);
+
+            pirateShipImageView[t].setX(pirateShips[t].getPirateLocation().x * scale);
+            pirateShipImageView[t].setY(pirateShips[t].getPirateLocation().y * scale);
+            root.getChildren().add(pirateShipImageView[t]);
+            t++;
+        }
+
+    }
+
+   
+    //  event handler method
+    private void startSailing() {
+        scene.setOnKeyPressed(ke -> {
+            switch (ke.getCode()) {
+                case RIGHT:
+                    ship.goEast();
+                    break;
+                case LEFT:
+                    ship.goWest();
+                    break;
+                case UP:
+                    ship.goNorth();
+                    break;
+                case DOWN:
+                    ship.goSouth();
+                    break;
+                default:
+                    break;
+            }
+            shipImageView.setX(ship.getShipLocation().x * scale);
+            shipImageView.setY(ship.getShipLocation().y * scale);
+            for (int i = 0; i < pirateShipsCount; i++) {
+                pirateShipImageView[i].setX(pirateShips[i].getPirateLocation().x * scale);
+                pirateShipImageView[i].setY(pirateShips[i].getPirateLocation().y * scale);
+            }
+        });
+    }
+
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 }
