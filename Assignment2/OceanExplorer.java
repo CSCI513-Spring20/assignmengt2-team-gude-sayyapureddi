@@ -2,7 +2,6 @@ package source;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -55,17 +54,6 @@ public class OceanExplorer extends Application {
         }
         pirateShipImageView = new ImageView[pirateShipsCount];
         pirateIslandImageView = new ImageView[pirateIslandsCount];
-        button = new Button("Reset");
-        button.setPrefSize(500, 50);
-        button.setLayoutX(0);
-        button.setLayoutY(500);
-        button.setOnAction(event -> {
-            try {
-                start(oceanStage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
 
         drawMap();
         root.getChildren().add(button);
