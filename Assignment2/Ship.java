@@ -1,18 +1,23 @@
 package source;
 
+import static source.OceanMap.dimensions;
+
 import java.awt.*;
-import java.util.Observable;
+import java.util.*;
 
 // contains the coordinates of the ship
 public class Ship extends Observable {
 
     private Point currentLocation;
+    static Random rand = new Random();
     int[][] ocean;
+    int  a = new Random().nextInt(dimensions);
+    int b = new Random().nextInt(dimensions);
 
     Ship() {
-        currentLocation = new Point(0, 0);
+        currentLocation = new Point(a, b);
         ocean = OceanMap.getMap();
-        ocean[0][0] = 1;
+        ocean[a][b] = 1;
 
     }
 

@@ -2,7 +2,6 @@ package source;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -13,58 +12,65 @@ import javafx.stage.Stage;
 
 public class OceanExplorer extends Application {
 
-	int[][] islandMap;
-	Pane root;
-	final int dimensions = 10;
-	final int scale = 50;
-	final int islandCount = 10;
-	final int pirateShipsCount = 2;
-	final int pirateIslandsCount = 2;
-	Image shipImage, islandImage, pirateShipImage, pirateIslandImage;
-	ImageView shipImageView, islandImageView;
-	ImageView[] pirateShipImageView, pirateIslandImageView;
-	OceanMap oceanMap;
-	Scene scene;
-	Ship ship;
-	PirateShip[] pirateShips;
-	PirateIsland[] pirateIslands;
-	Button button;
+	 int[][] islandMap;
+	    Pane root;
+	    final int dimensions = 10;
+	    final int scale = 50;
+	    final int islandCount = 10;
+	    final int pirateShipsCount = 2;
+	    final int pirateIslandsCount = 2;
+	    Image shipImage,islandImage,pirateShipImage,pirateIslandImage;
+	    ImageView shipImageView, islandImageView;
+	    ImageView[] pirateShipImageView,pirateIslandImageView;
+	    OceanMap oceanMap;
+	    Scene scene;
+	    Ship ship;
+	    PirateShip[] pirateShips;
+	    PirateIsland[] pirateIslands;
 
 	@Override
 	public void start(Stage oceanStage) throws Exception {
+		 // create ocean grid
+        oceanMap = new OceanMap(dimensions, islandCount);
+        islandMap = OceanMap.getMap();
+        // layout
 
-		// create ocean grid
-		oceanMap = new OceanMap(dimensions, islandCount);
-		islandMap = OceanMap.getMap();
-		// layout
-		root = new AnchorPane();
-		// pirate ship initializations
-		pirateShips = new PirateShip[pirateShipsCount];
-		pirateIslands = new PirateIsland[pirateIslandsCount];
+        root = new AnchorPane();
 
-		for (int i = 0; i < pirateIslandsCount; i++) {
-			pirateIslands[i] = new PirateIsland();
-		}
-		for (int i = 0; i < pirateShipsCount; i++) {
-			pirateShips[i] = new PirateShip();
 
-		}
-		pirateShipImageView = new ImageView[pirateShipsCount];
-		pirateIslandImageView = new ImageView[pirateIslandsCount];
-		
-		drawMap();
 
-		ship = new Ship();
-	
+        // pirate ship initializations
+        pirateShips = new PirateShip[pirateShipsCount];
+        pirateIslands = new PirateIsland[pirateIslandsCount];
 
-		loadShipImage();
+        for (int i = 0; i < pirateIslandsCount; i++) {
+            pirateIslands[i] = new PirateIsland();
+        }
+      
+        for (int i = 0; i < pirateShipsCount; i++) {
+            pirateShips[i] = new PirateShip(pirateIslands[i].getPirateIslandLocation());
 
-		scene = new Scene(root, 500, 550);
+        }
+        pirateShipImageView = new ImageView[pirateShipsCount];
+        pirateIslandImageView = new ImageView[pirateIslandsCount];
+       
 
-		oceanStage.setTitle("Christopher Columbus Sails the Ocean Blue");
-		oceanStage.setScene(scene);
-		oceanStage.show();
-		startSailing();
+        drawMap();
+
+        ship = new Ship();
+        // add observers
+        for (int i = 0; i < pirateShipsCount; i++) {
+            ship.addObserver(pirateShips[i]);
+        }
+        loadShipImage();
+
+
+        scene = new Scene(root, 500, 550);
+
+        oceanStage.setTitle("Christopher Columbus Sails the Ocean Blue");
+        oceanStage.setScene(scene);
+        oceanStage.show();
+        startSailing();
 	}
 
 	// draw map
@@ -84,8 +90,8 @@ public class OceanExplorer extends Application {
 
 			}
 		}
-		//loadPirateIsland();
 		loadPirateShipImage();
+		loadPirateIsland();
 
 	}
 
@@ -100,23 +106,40 @@ public class OceanExplorer extends Application {
 		root.getChildren().add(shipImageView);
 
 	}
+	 // load pirate ship image
 
-	// load pirate ship image
+    private void loadPirateShipImage() {
+        pirateShipImage = new Image("source/pirateShip.png", 50, 50, true, true);
+        int t = 0;
+        while (t < pirateShipsCount) {
 
-	private void loadPirateShipImage() {
-		pirateShipImage = new Image("source/pirateShip.png", 50, 50, true, true);
-		int t = 0;
-		while (t < pirateShipsCount) {
 
-			pirateShipImageView[t] = new ImageView(pirateShipImage);
+            pirateShipImageView[t] = new ImageView(pirateShipImage);
 
-			pirateShipImageView[t].setX(PirateShip.getPirateLocation().x * scale);
-			pirateShipImageView[t].setY(PirateShip.getPirateLocation().y * scale);
-			root.getChildren().add(pirateShipImageView[t]);
-			t++;
-		}
+            pirateShipImageView[t].setX(pirateShips[t].getPirateLocation().x * scale);
+            pirateShipImageView[t].setY(pirateShips[t].getPirateLocation().y * scale);
+            root.getChildren().add(pirateShipImageView[t]);
+            t++;
+        }
 
-	}
+    }
+    
+//  load pirate island
+  private void loadPirateIsland(){
+      pirateIslandImage = new Image("source/pirateIsland.png", 50, 50, true, true);
+      int t = 0;
+      while (t < pirateIslandsCount) {
+
+
+          pirateIslandImageView[t] = new ImageView(pirateIslandImage);
+          pirateIslandImageView[t].setX(pirateIslands[t].getPirateIslandLocation().x * scale);
+          pirateIslandImageView[t].setY(pirateIslands[t].getPirateIslandLocation().y * scale);
+          root.getChildren().add(pirateIslandImageView[t]);
+          t++;
+      }
+
+
+  }
 
 	 //    load islands to the map
     private void loadIslandImage(int x, int y) {
@@ -126,7 +149,6 @@ public class OceanExplorer extends Application {
         islandImageView.setY((double) y * scale);
         root.getChildren().add(islandImageView);
     }
-
 	// event handler method
 	private void startSailing() {
 		scene.setOnKeyPressed(ke -> {
@@ -148,10 +170,10 @@ public class OceanExplorer extends Application {
 			}
 			shipImageView.setX(ship.getShipLocation().x * scale);
 			shipImageView.setY(ship.getShipLocation().y * scale);
-			for (int i = 0; i < pirateShipsCount; i++) {
-				pirateShipImageView[i].setX(PirateShip.getPirateLocation().x * scale);
-				pirateShipImageView[i].setY(PirateShip.getPirateLocation().y * scale);
-			}
+			 for (int i = 0; i < pirateShipsCount; i++) {
+	                pirateShipImageView[i].setX(pirateShips[i].getPirateLocation().x * scale);
+	                pirateShipImageView[i].setY(pirateShips[i].getPirateLocation().y * scale);
+	            }
 		});
 	}
 
