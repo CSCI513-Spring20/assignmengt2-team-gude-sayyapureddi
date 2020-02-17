@@ -1,50 +1,71 @@
-import java.awt.Point;
+package source;
 
-public class Ship {
-	int xCell;
-	int yCell;
+import java.awt.*;
+import java.util.Observable;
 
-	public Ship(int x, int y) {
+// contains the coordinates of the ship
+public class Ship extends Observable {
 
-		xCell = x;
-		yCell = y;
-	}
+    private Point currentLocation;
+    int[][] ocean;
 
-   //event handle for right
-	public void goEast() {
-		if (xCell != 9) {
-			xCell++;
-		}
-	}
+    Ship() {
+        currentLocation = new Point(0, 0);
+        ocean = OceanMap.getMap();
+        ocean[0][0] = 1;
 
-   //event handle for left
-	public void goWest() {
-		if (xCell != 0) {
-			xCell--;
-		}
-	}
+    }
 
-	// event handle for top
-	public void goNorth() {
-		if (yCell != 0) {
-			yCell--;
-		}
-	}
+    //    returns location of the ship
+    public Point getShipLocation() {
+        return currentLocation;
+    }
 
-	// event handle for bottom
-	public void goSouth() {
-		if (yCell != 9) {
-			yCell++;
-		}
-	}
+    //    setter for ship location
+    private void setShipLocation(Point newLocation) {
+        ocean[currentLocation.x][currentLocation.y] = 0;
+        currentLocation = newLocation;
+        ocean[currentLocation.x][currentLocation.y] = 1;
+    }
 
-	// getShipLocation returns the position of the ship after event(or) action made
-	public Point getShipLocation() {
-		return new Point(xCell, yCell);
-	}
-	//intial location
-	public Point intialShipLocation() {
-		return new Point(xCell, yCell);
-	}
+    //    when right button is clicked
+//    checks if its not on the edge
+//    if true then sends message to the pirate ship observer
+    public void goEast() {
+        if (currentLocation.x < 9 && (ocean[currentLocation.x + 1][currentLocation.y] == 0)) {
+            setShipLocation(new Point(currentLocation.x + 1, currentLocation.y));
+            setChanged();
+            notifyObservers(currentLocation);
+
+        }
+    }
+//    when left button is clicked
+
+    public void goWest() {
+        if (currentLocation.x > 0 && (ocean[currentLocation.x - 1][currentLocation.y] == 0)) {
+            setShipLocation(new Point(currentLocation.x - 1, currentLocation.y));
+            setChanged();
+            notifyObservers(currentLocation);
+        }
+    }
+
+    //    when top button is clicked
+    public void goNorth() {
+        if (currentLocation.y > 0 && (ocean[currentLocation.x][currentLocation.y - 1] == 0)) {
+            setShipLocation(new Point(currentLocation.x, currentLocation.y - 1));
+            setChanged();
+            notifyObservers(currentLocation);
+        }
+    }
+
+    //    when down button is clicked
+    public void goSouth() {
+        if (currentLocation.y < 9 && (ocean[currentLocation.x][currentLocation.y + 1] == 0)) {
+            setShipLocation(new Point(currentLocation.x, currentLocation.y + 1));
+            setChanged();
+            notifyObservers(currentLocation);
+        }
+    }
+
 
 }
